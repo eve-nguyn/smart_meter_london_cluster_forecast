@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enterprise Energy Management Dashboard — London Smart Meter Demo</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --line-strong: #cbd5e1;
+      --brand: #0f5d8f;
+      --brand-2: #0284c7;
+      --green: #16a34a;
+      --amber: #d97706;
+      --red: #dc2626;
+      --blue-soft: #e0f2fe;
+      --green-soft: #dcfce7;
+      --amber-soft: #fef3c7;
+      --red-soft: #fee2e2;
+      --shadow: 0 16px 45px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+      --radius-sm: 12px;
+      --sidebar: 268px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: var(--sidebar) 1fr;
+      min-height: 100vh;
+    }
+
+    aside {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border-right: 1px solid var(--line);
+      padding: 24px 18px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .logo {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+    .logo-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, #0f5d8f, #22c55e);
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      box-shadow: 0 10px 24px rgba(15, 93, 143, 0.24);
+    }
+    .logo h1 {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+    .logo span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav-section-title {
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 18px 10px 8px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 12px;
+      border-radius: 12px;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 650;
+      margin-bottom: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      border: 1px solid transparent;
+      transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+    }
+    .nav-item:hover {
+      color: #075985;
+      background: #f0f9ff;
+      border-color: #bae6fd;
+      transform: translateX(2px);
+    }
+    .nav-item.active {
+      color: #075985;
+      background: #e0f2fe;
+      border-color: #bae6fd;
+    }
+    .nav-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #94a3b8;
+    }
+    .nav-item.active .nav-dot { background: var(--brand-2); }
+
+    main {
+      padding: 24px;
+      max-width: 1680px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+    .hero h2 {
+      margin: 0 0 6px;
+      font-size: 26px;
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+    }
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 820px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .status-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 13px;
+      border: 1px solid #bbf7d0;
+      background: #f0fdf4;
+      color: #166534;
+      border-radius: 999px;
+      font-weight: 750;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 6px rgba(22, 163, 74, 0.12);
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr 0.9fr 1fr 0.9fr auto;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+    }
+    .field label {
+      display: block;
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    select, input[type="range"] {
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      background: #fff;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font: inherit;
+      font-size: 13px;
+      outline: none;
+    }
+    select:focus { border-color: var(--brand-2); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12); }
+    .horizon-toggle {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      align-items: end;
+    }
+    .toggle-btn {
+      border: 1px solid var(--line-strong);
+      background: #fff;
+      color: #334155;
+      border-radius: 12px;
+      padding: 10px 10px;
+      font-weight: 760;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .toggle-btn.active {
+      color: #fff;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      border-color: transparent;
+      box-shadow: 0 10px 20px rgba(2, 132, 199, 0.2);
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .kpi-card {
+      padding: 16px;
+      min-height: 136px;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card::after {
+      content: "";
+      position: absolute;
+      width: 72px;
+      height: 72px;
+      right: -20px;
+      top: -20px;
+      border-radius: 50%;
+      background: #e0f2fe;
+    }
+    .kpi-title {
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+    }
+    .kpi-value {
+      font-size: 24px;
+      font-weight: 850;
+      letter-spacing: -0.04em;
+      margin-bottom: 7px;
+      position: relative;
+      z-index: 1;
+    }
+    .kpi-sub {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      position: relative;
+      z-index: 1;
+    }
+    .trend {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      margin-top: 10px;
+    }
+    .trend.good { background: var(--green-soft); color: #166534; }
+    .trend.warn { background: var(--amber-soft); color: #92400e; }
+    .trend.bad { background: var(--red-soft); color: #991b1b; }
+
+    .grid-2-main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) minmax(360px, 0.8fr);
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1.05fr 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 18px 18px 0;
+      margin-bottom: 12px;
+    }
+    .card-title h3 {
+      margin: 0 0 4px;
+      font-size: 16px;
+      letter-spacing: -0.02em;
+    }
+    .card-title p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      color: #475569;
+      font-size: 12px;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+    .chart-wrap {
+      padding: 0 18px 18px;
+      height: 360px;
+    }
+    .chart-wrap.short { height: 285px; }
+    .chart-wrap.tall { height: 410px; }
+    canvas { width: 100%; height: 100%; display: block; }
+
+    .alert-list {
+      padding: 0 18px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 362px;
+      overflow: auto;
+    }
+    .alert-item {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      background: #fff;
+    }
+    .alert-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 7px;
+    }
+    .alert-name { font-size: 13px; font-weight: 850; color: #0f172a; }
+    .alert-meta { color: var(--muted); font-size: 12px; line-height: 1.35; }
+    .badge {
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .badge.normal { background: var(--green-soft); color: #166534; }
+    .badge.warning { background: var(--amber-soft); color: #92400e; }
+    .badge.critical { background: var(--red-soft); color: #991b1b; }
+    .badge.info { background: var(--blue-soft); color: #075985; }
+
+    .cluster-grid {
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      gap: 12px;
+      padding: 0 18px 18px;
+      align-items: center;
+    }
+    .cluster-cards {
+      display: grid;
+      gap: 10px;
+    }
+    .cluster-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      background: var(--surface-2);
+    }
+    .cluster-card strong { display: block; font-size: 13px; margin-bottom: 4px; }
+    .cluster-card span { color: var(--muted); font-size: 12px; line-height: 1.4; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 11px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    th {
+      color: #64748b;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: #f8fafc;
+      font-weight: 850;
+    }
+    .table-wrap {
+      padding: 0 18px 18px;
+      overflow: auto;
+    }
+    .meter-id { font-weight: 850; color: #0f172a; }
+    .muted { color: var(--muted); }
+
+    .insights {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      padding: 0 18px 18px;
+    }
+    .insight-card {
+      border-radius: 16px;
+      padding: 14px;
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
+      border: 1px solid var(--line);
+      min-height: 142px;
+    }
+    .insight-card h4 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      letter-spacing: -0.01em;
+    }
+    .insight-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .insight-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      background: #e0f2fe;
+      color: #075985;
+      display: grid;
+      place-items: center;
+      margin-bottom: 10px;
+      font-weight: 900;
+    }
+
+    .model-summary {
+      padding: 0 18px 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .model-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 13px;
+      background: #fff;
+    }
+    .model-card strong { display: block; margin-bottom: 6px; font-size: 13px; }
+    .model-card .big { font-size: 24px; font-weight: 900; letter-spacing: -0.04em; margin: 4px 0; }
+    .model-card p { color: var(--muted); margin: 0; font-size: 12px; line-height: 1.4; }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+      padding: 18px;
+      margin-top: 18px;
+      border: 1px dashed var(--line-strong);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+
+
+    section[id], .anchor-card {
+      scroll-margin-top: 22px;
+    }
+
+    .model-inputs-section {
+      margin-top: 18px;
+      padding-bottom: 8px;
+    }
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      padding: 0 18px 18px;
+    }
+    .dataset-card {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border-radius: var(--radius-sm);
+      padding: 15px;
+      min-height: 230px;
+    }
+    .dataset-card h4 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      letter-spacing: -0.02em;
+    }
+    .dataset-card p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .schema-list {
+      display: grid;
+      gap: 7px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .schema-list li {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 9px;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      font-size: 12px;
+      color: #334155;
+    }
+    .schema-list span {
+      color: #64748b;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .source-pill-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .source-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: #e0f2fe;
+      color: #075985;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    @media (max-width: 1280px) {
+      .app { grid-template-columns: 1fr; }
+      aside { position: relative; height: auto; border-right: none; border-bottom: 1px solid var(--line); }
+      .toolbar { grid-template-columns: repeat(3, 1fr); }
+      .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+      .grid-2-main, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .insights { grid-template-columns: repeat(2, 1fr); }
+      .input-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 780px) {
+      main { padding: 16px; }
+      .hero { flex-direction: column; }
+      .toolbar, .kpi-grid, .model-summary, .cluster-grid, .insights, .input-grid { grid-template-columns: 1fr; }
+      .chart-wrap { height: 300px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <div class="logo">
+        <div class="logo-mark">E</div>
+        <div>
+          <h1>EnergyOps<br/>Forecast</h1>
+          <span>London Smart Meter Demo</span>
+        </div>
+      </div>
+      <div class="nav-section-title">Dashboard</div>
+      <a class="nav-item active" href="#executive-overview" data-target="executive-overview"><span class="nav-dot"></span>Executive Overview</a>
+      <a class="nav-item" href="#forecast-vs-actual" data-target="forecast-vs-actual"><span class="nav-dot"></span>Forecast vs Actual</a>
+      <a class="nav-item" href="#anomaly-alerts" data-target="anomaly-alerts"><span class="nav-dot"></span>Anomaly Alerts</a>
+      <a class="nav-item" href="#cluster-distribution" data-target="cluster-distribution"><span class="nav-dot"></span>Cluster Distribution</a>
+      <a class="nav-item" href="#top-meters" data-target="top-meters"><span class="nav-dot"></span>Top Meters</a>
+      <a class="nav-item" href="#weather-impact" data-target="weather-impact"><span class="nav-dot"></span>Weather Impact</a>
+      <div class="nav-section-title">Model Inputs</div>
+      <a class="nav-item" href="#model-inputs" data-target="model-inputs"><span class="nav-dot"></span>Model Inputs</a>
+      <a class="nav-item" href="#daily-kwh" data-target="daily-kwh"><span class="nav-dot"></span>Daily kWh</a>
+      <a class="nav-item" href="#household-metadata" data-target="household-metadata"><span class="nav-dot"></span>Household Metadata</a>
+      <a class="nav-item" href="#daily-weather" data-target="daily-weather"><span class="nav-dot"></span>Daily Weather</a>
+      <a class="nav-item" href="#bank-holidays" data-target="bank-holidays"><span class="nav-dot"></span>Bank Holidays</a>
+    </aside>
+
+    <main>
+      <section class="hero" id="executive-overview">
+        <div>
+          <h2>Enterprise Energy Management Dashboard</h2>
+          <p>Daily energy monitoring, 1/7/30-day forecasting, forecast-vs-actual performance, anomaly alerts, customer cluster distribution, top meter ranking, and weather impact analysis for the London Smart Meter dataset.</p>
+        </div>
+        <div class="status-chip"><span class="pulse"></span>Demo data loaded</div>
+      </section>
+
+      <section class="toolbar">
+        <div class="field">
+          <label>View level</label>
+          <select id="scopeSelect">
+            <option value="system">System aggregate</option>
+            <option value="cluster">Cluster drill-down</option>
+            <option value="meter">Individual meter</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Cluster</label>
+          <select id="clusterSelect">
+            <option value="all">All clusters</option>
+            <option value="0">Cluster 0 — Stable seasonal</option>
+            <option value="1">Cluster 1 — Low/weekend sensitive</option>
+            <option value="2">Cluster 2 — High/volatile</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Top meter / household</label>
+          <select id="meterSelect"></select>
+        </div>
+        <div class="field">
+          <label>Forecast model</label>
+          <select id="modelSelect">
+            <option value="Random Forest">Random Forest — best SysMAPE</option>
+            <option value="BA-BP NN">BA-BP NN — best MAPE</option>
+            <option value="GBT">Gradient-Boosted Trees</option>
+            <option value="Linear Regression">Linear Regression</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Critical deviation: <span id="thresholdLabel">15%</span></label>
+          <input id="thresholdSlider" type="range" min="10" max="25" value="15" step="1" />
+        </div>
+        <div class="field">
+          <label>Horizon</label>
+          <div class="horizon-toggle">
+            <button class="toggle-btn" data-horizon="1">1D</button>
+            <button class="toggle-btn active" data-horizon="7">7D</button>
+            <button class="toggle-btn" data-horizon="30">30D</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="kpi-grid">
+        <div class="card kpi-card">
+          <div class="kpi-title">Actual energy</div>
+          <div class="kpi-value" id="kpiActual">—</div>
+          <div class="kpi-sub">Latest measured daily consumption</div>
+          <div class="trend good" id="actualTrend">Normal load</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Forecast energy</div>
+          <div class="kpi-value" id="kpiForecast">—</div>
+          <div class="kpi-sub">Expected daily consumption from selected model</div>
+          <div class="trend good" id="forecastTrend">7-day outlook</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Forecast accuracy</div>
+          <div class="kpi-value" id="kpiAccuracy">—</div>
+          <div class="kpi-sub">Based on latest forecast-vs-actual deviation</div>
+          <div class="trend good" id="accuracyTrend">Within control limit</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Active alerts</div>
+          <div class="kpi-value" id="kpiAlerts">—</div>
+          <div class="kpi-sub">Deviation + z-score anomaly checks</div>
+          <div class="trend warn" id="alertTrend">Review exceptions</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Peak demand day</div>
+          <div class="kpi-value" id="kpiPeak">—</div>
+          <div class="kpi-sub">Highest consumption in current scope</div>
+          <div class="trend good" id="peakTrend">Seasonal peak</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Weather impact</div>
+          <div class="kpi-value" id="kpiWeather">—</div>
+          <div class="kpi-sub">Sensitivity between temperature and kWh</div>
+          <div class="trend warn" id="weatherTrend">Cold-day uplift</div>
+        </div>
+      </section>
+
+      <section class="grid-2-main">
+        <div class="card anchor-card" id="forecast-vs-actual">
+          <div class="card-header">
+            <div class="card-title">
+              <h3>Daily Forecast vs Actuals</h3>
+              <p>Actual kWh compared with selected model forecast. Future horizon is shown after the last actual day.</p>
+            </div>
+            <span class="pill" id="chartScopePill">System aggregate · 7D</span>
+          </div>
+          <div class="chart-wrap tall"><canvas id="forecastChart"></canvas></div>
+        </div>
+        <div class="card anchor-card" id="anomaly-alerts">
+          <div class="card-header">
+            <div class="card-title">
+              <h3>Anomaly Alert Center</h3>
+              <p>Triggered by forecast deviation threshold and z-score anomaly rule.</p>
+            </div>
+            <span class="pill" id="alertRulePill">Critical ≥ 15%</span>
+          </div>
+          <div class="alert-list" id="alertList"></div>
+        </div>
+      </section>
+
+      <section class="grid-2">
+        <div class="card anchor-card" id="cluster-distribution">
+          <div class="card-header">
+            <div class="card-title">
+              <h3>Cluster Distribution</h3>
+              <p>K-Means segmentation result from the uploaded clustering notebook.</p>
+            </div>
+            <span class="pill">k = 3 · silhouette 0.3677</span>
+          </div>
+          <div class="cluster-grid">
+            <div class="chart-wrap short" style="padding:0;height:240px;"><canvas id="donutChart"></canvas></div>
+            <div class="cluster-cards" id="clusterCards"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <h3>Average Usage by Cluster</h3>
+              <p>Average daily kWh and forecast error profile by consumer segment.</p>
+            </div>
+            <span class="pill">Operational segment view</span>
+          </div>
+          <div class="chart-wrap short"><canvas id="clusterUsageChart"></canvas></div>
+        </div>
+      </section>
+
+      <section class="grid-2">
+        <div class="card anchor-card" id="top-meters">
+          <div class="card-header">
+            <div class="card-title">
+              <h3>Top Meters by Daily Consumption</h3>
+              <p>Ranking of highest consuming meters in the selected scope with alert status.</p>
+            </div>
+            <span class="pill" id="topMeterPill">Latest actual day</span>
+          </div>
+          <div class="chart-wrap short"><canvas id="topMetersChart"></canvas></div>
+          <div class="table-wrap"><table id="topMetersTable"></table></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <h3>Model Performance Comparison</h3>
+              <p>Cluster-aware model performance vs no-cluster baseline from notebook outputs.</p>
+            </div>
+            <span class="pill">Hold-out test window</span>
+          </div>
+          <div class="chart-wrap short"><canvas id="modelChart"></canvas></div>
+          <div class="model-summary">
+            <div class="model-card">
+              <strong>Best operational model</strong>
+              <div class="big">RF</div>
+              <p>Cluster-aware Random Forest has the best system-level MAPE at 3.98%, useful for total portfolio planning.</p>
+            </div>
+            <div class="model-card">
+              <strong>Best meter-level model</strong>
+              <div class="big">BA-BP NN</div>
+              <p>BA-BP Neural Network has the lowest individual-level MAPE at 21.24% in the cluster-aware setup.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid-3" id="weather-impact">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <h3>Temperature vs Energy</h3>
+              <p>Relationship between average daily temperature and demand.</p>
+            </div>
+            <span class="pill">Weather sensitivity</span>
+          </div>
+          <div class="chart-wrap short"><canvas id="weatherScatter"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <h3>Weather Category vs Consumption</h3>
+              <p>Average kWh by daily weather category.</p>
+            </div>
+            <span class="pill">Operational root cause</span>
+          </div>
+          <div class="chart-wrap short"><canvas id="weatherCategoryChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <h3>Seasonality Pattern</h3>
+              <p>Monthly average consumption profile used to explain forecast shifts.</p>
+            </div>
+            <span class="pill">Winter uplift</span>
+          </div>
+          <div class="chart-wrap short"><canvas id="seasonalityChart"></canvas></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <h3>Business Insights</h3>
+            <p>Auto-generated enterprise-style interpretation from consumption, forecast, cluster, and weather signals.</p>
+          </div>
+          <span class="pill">Decision support</span>
+        </div>
+        <div class="insights" id="insightGrid"></div>
+      </section>
+
+
+      <section class="card model-inputs-section" id="model-inputs">
+        <div class="card-header">
+          <div class="card-title">
+            <h3>Model Inputs</h3>
+            <p>Source tables used by the forecasting and clustering pipeline. These cards make the sidebar destinations clickable and clarify the expected production data feeds.</p>
+          </div>
+          <span class="pill">Pipeline schema</span>
+        </div>
+        <div class="input-grid">
+          <div class="dataset-card anchor-card" id="daily-kwh">
+            <h4>Daily kWh</h4>
+            <p>Daily smart-meter consumption table used as the main target signal for monitoring, clustering features and forecast training.</p>
+            <ul class="schema-list">
+              <li><strong>meter_id</strong><span>string</span></li>
+              <li><strong>date</strong><span>date</span></li>
+              <li><strong>daily_kwh</strong><span>float</span></li>
+              <li><strong>actual_flag</strong><span>bool</span></li>
+            </ul>
+            <div class="source-pill-row"><span class="source-pill">Target</span><span class="source-pill">Daily</span></div>
+          </div>
+          <div class="dataset-card anchor-card" id="household-metadata">
+            <h4>Household Metadata</h4>
+            <p>Household attributes used for segmentation, model drill-down and business grouping across smart-meter portfolios.</p>
+            <ul class="schema-list">
+              <li><strong>meter_id</strong><span>string</span></li>
+              <li><strong>acorn_group</strong><span>category</span></li>
+              <li><strong>cluster_id</strong><span>integer</span></li>
+              <li><strong>portfolio_group</strong><span>category</span></li>
+            </ul>
+            <div class="source-pill-row"><span class="source-pill">Metadata</span><span class="source-pill">Cluster</span></div>
+          </div>
+          <div class="dataset-card anchor-card" id="daily-weather">
+            <h4>Daily Weather</h4>
+            <p>Daily weather enrichment used to explain demand changes and improve forecast interpretation, especially during cold-day uplift.</p>
+            <ul class="schema-list">
+              <li><strong>date</strong><span>date</span></li>
+              <li><strong>temperature</strong><span>°C</span></li>
+              <li><strong>weather_category</strong><span>category</span></li>
+              <li><strong>season</strong><span>category</span></li>
+            </ul>
+            <div class="source-pill-row"><span class="source-pill">Exogenous</span><span class="source-pill">Weather</span></div>
+          </div>
+          <div class="dataset-card anchor-card" id="bank-holidays">
+            <h4>Bank Holidays</h4>
+            <p>Calendar features used to capture non-working-day behavior and reduce forecast errors around public holidays.</p>
+            <ul class="schema-list">
+              <li><strong>date</strong><span>date</span></li>
+              <li><strong>holiday_name</strong><span>string</span></li>
+              <li><strong>is_bank_holiday</strong><span>bool</span></li>
+              <li><strong>holiday_type</strong><span>category</span></li>
+            </ul>
+            <div class="source-pill-row"><span class="source-pill">Calendar</span><span class="source-pill">Feature</span></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer-note">
+        <strong>Demo note:</strong> This is a single-file HTML prototype with embedded representative sample data. It is designed from the uploaded notebooks: preprocessing uses daily smart meter consumption, household metadata, daily weather and bank holidays; clustering uses Spark ML K-Means with k=3; forecasting compares Linear Regression, Random Forest, BA-BP NN and GBT with cluster-aware and no-cluster variants. For production, replace the embedded demo arrays with outputs exported from your pipeline, for example <code>daily_forecast.csv</code>, <code>household_clusters.csv</code>, <code>model_metrics.csv</code>, and weather enrichment tables.
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const DASHBOARD = (() => {
+      const clusters = [
+        { id: 0, name: "Cluster 0", label: "Stable seasonal", count: 2669, pct: 60.5, avgDaily: 9.4, error: 4.2, seasonRatio: 1.62, desc: "Largest segment. Moderate daily load with clear winter uplift and stable daily behavior." },
+        { id: 1, name: "Cluster 1", label: "Low / weekend-sensitive", count: 1274, pct: 28.9, avgDaily: 5.8, error: 5.4, seasonRatio: 1.38, desc: "Lower demand segment. Weekend usage pattern is more visible and portfolio risk is low." },
+        { id: 2, name: "Cluster 2", label: "High / volatile", count: 467, pct: 10.6, avgDaily: 15.7, error: 7.8, seasonRatio: 2.08, desc: "Smallest but highest-impact group. Strong weather sensitivity and larger anomaly contribution." }
+      ];
+
+      const models = {
+        "Linear Regression": { cluster: { RMSE: 4.0884, MAE: 2.3580, MAPE: 22.4032, MedAPE: 15.4400, R2: 0.8525, SysMAPE: 8.9081 }, noCluster: { RMSE: 4.0354, MAE: 2.3392, MAPE: 22.3950, MedAPE: 15.3344, R2: 0.8563, SysMAPE: 8.8971 } },
+        "Random Forest": { cluster: { RMSE: 4.6130, MAE: 2.3131, MAPE: 21.4298, MedAPE: 14.0810, R2: 0.8123, SysMAPE: 3.9839 }, noCluster: { RMSE: 4.6863, MAE: 2.3379, MAPE: 21.4983, MedAPE: 14.2022, R2: 0.8062, SysMAPE: 4.1460 } },
+        "BA-BP NN": { cluster: { RMSE: 4.1404, MAE: 2.3067, MAPE: 21.2446, MedAPE: 15.0207, R2: 0.8488, SysMAPE: 5.4425 }, noCluster: { RMSE: 4.2679, MAE: 2.3292, MAPE: 21.3388, MedAPE: 15.0557, R2: 0.8393, SysMAPE: 4.5614 } },
+        "GBT": { cluster: { RMSE: 4.6810, MAE: 2.3713, MAPE: 21.5046, MedAPE: 14.6024, R2: 0.8067, SysMAPE: 4.1460 }, noCluster: { RMSE: 4.7385, MAE: 2.3950, MAPE: 21.5745, MedAPE: 14.7186, R2: 0.8019, SysMAPE: 4.4036 } }
+      };
+
+      const topMeters = [
+        { id: "MAC004921", cluster: 2, base: 38.6, kind: "High winter load" },
+        { id: "MAC002771", cluster: 2, base: 35.4, kind: "Volatile profile" },
+        { id: "MAC005054", cluster: 0, base: 31.8, kind: "Stable but high" },
+        { id: "MAC001447", cluster: 2, base: 29.6, kind: "Cold-day sensitive" },
+        { id: "MAC003690", cluster: 0, base: 26.9, kind: "Evening peak" },
+        { id: "MAC000131", cluster: 0, base: 24.7, kind: "Seasonal increase" },
+        { id: "MAC005471", cluster: 1, base: 21.6, kind: "Weekend uplift" },
+        { id: "MAC002368", cluster: 0, base: 20.9, kind: "Medium-high" },
+        { id: "MAC001092", cluster: 1, base: 18.8, kind: "Low stability" },
+        { id: "MAC004008", cluster: 1, base: 17.4, kind: "Weekend peak" },
+        { id: "MAC003122", cluster: 0, base: 16.8, kind: "Stable" },
+        { id: "MAC005800", cluster: 2, base: 33.2, kind: "Critical watch" }
+      ];
+
+      const state = { scope: "system", cluster: "all", meter: topMeters[0].id, horizon: 7, model: "Random Forest", criticalThreshold: 15 };
+      const colors = { blue: "#0f5d8f", blue2: "#0284c7", green: "#16a34a", amber: "#d97706", red: "#dc2626", ink: "#0f172a", muted: "#64748b", grid: "#e2e8f0", purple: "#7c3aed" };
+
+      const months = ["Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov"];
+      const weatherCats = ["Clear", "Partly cloudy", "Overcast", "Rain", "Cold snap"];
+
+      function mulberry32(a) {
+        return function() {
+          let t = a += 0x6D2B79F5;
+          t = Math.imul(t ^ t >>> 15, t | 1);
+          t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+          return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        }
+      }
+      const rand = mulberry32(15122013);
+      const daily = generateDailyData();
+
+      function fmtKwh(v) {
+        if (!Number.isFinite(v)) return "—";
+        if (Math.abs(v) >= 1000) return (v / 1000).toFixed(1) + " MWh";
+        return v.toFixed(1) + " kWh";
+      }
+      function fmtPct(v) { return Number.isFinite(v) ? v.toFixed(1) + "%" : "—"; }
+      function fmtDate(d) {
+        const dt = new Date(d + "T00:00:00Z");
+        return dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+      }
+      function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+      function generateDailyData() {
+        const rows = [];
+        const start = new Date("2013-12-01T00:00:00Z");
+        const totalDays = 90;
+        for (let i = 0; i < totalDays; i++) {
+          const d = new Date(start);
+          d.setUTCDate(start.getUTCDate() + i);
+          const day = d.toISOString().slice(0, 10);
+          const dayOfWeek = d.getUTCDay();
+          const seasonBoost = i < 45 ? 1.18 : i < 70 ? 1.08 : 0.98;
+          const temp = 4.5 + Math.sin(i / 7) * 2.8 + Math.sin(i / 18) * 3.4 + rand() * 2.4;
+          const coldUplift = Math.max(0, 10 - temp) * 0.035;
+          const weekend = dayOfWeek === 0 || dayOfWeek === 6 ? 1.04 : 1;
+          const weatherIndex = temp < 4 ? 4 : rand() > 0.72 ? 3 : rand() > 0.47 ? 2 : rand() > 0.25 ? 1 : 0;
+          const weatherFactor = [0.98, 1.00, 1.03, 1.08, 1.16][weatherIndex];
+          const portfolioBase = clusters.reduce((sum, c) => sum + c.count * c.avgDaily, 0);
+          const noise = 1 + (rand() - 0.5) * 0.055;
+          let actual = portfolioBase * seasonBoost * (1 + coldUplift) * weekend * weatherFactor * noise;
+          if ([13, 31, 48, 72].includes(i)) actual *= 1.19 + rand() * 0.08;
+          if ([23, 59].includes(i)) actual *= 0.84 - rand() * 0.03;
+          const modelBias = 0.985 + Math.sin(i / 11) * 0.012;
+          const forecast = portfolioBase * seasonBoost * (1 + coldUplift * 0.86) * weekend * weatherFactor * modelBias;
+          const clusterValues = clusters.map(c => {
+            const sensitivity = c.id === 2 ? 1.25 : c.id === 1 ? 0.82 : 1.0;
+            const cActual = c.count * c.avgDaily * seasonBoost * (1 + coldUplift * sensitivity) * weekend * weatherFactor * (1 + (rand() - 0.5) * (c.id === 2 ? 0.11 : 0.06));
+            const cForecast = c.count * c.avgDaily * seasonBoost * (1 + coldUplift * sensitivity * 0.86) * weekend * weatherFactor * (0.99 + Math.sin(i / (9 + c.id)) * 0.01);
+            return { cluster: c.id, actual: cActual, forecast: cForecast };
+          });
+          const futureForecast = forecast * (1 + Math.sin((i + 4) / 12) * 0.025);
+          rows.push({ day, actual, forecast, temp, weather: weatherCats[weatherIndex], clusterValues, futureForecast });
+        }
+        return rows;
+      }
+
+      function getScopeSeries() {
+        const scope = state.scope;
+        const meter = topMeters.find(m => m.id === state.meter) || topMeters[0];
+        const clusterId = state.cluster === "all" ? 0 : +state.cluster;
+        return daily.map((r, idx) => {
+          let actual = r.actual;
+          let forecast = r.forecast;
+          if (scope === "cluster") {
+            const c = r.clusterValues.find(x => x.cluster === clusterId) || r.clusterValues[0];
+            actual = c.actual;
+            forecast = c.forecast;
+          } else if (scope === "meter") {
+            const c = clusters.find(x => x.id === meter.cluster);
+            const dailySwing = 1 + Math.sin(idx / 5 + meter.base / 13) * 0.08 + Math.sin(idx * 1.37 + meter.base) * 0.006;
+            const tempUplift = Math.max(0, 9 - r.temp) * (meter.cluster === 2 ? 0.085 : 0.045);
+            actual = meter.base * dailySwing * (1 + tempUplift) * (r.weather === "Rain" ? 1.05 : r.weather === "Cold snap" ? 1.12 : 1);
+            forecast = meter.base * (1 + tempUplift * 0.82) * (1 + Math.sin(idx / 9) * 0.035);
+            if ([13, 48, 72].includes(idx) && meter.cluster === 2) actual *= 1.22;
+            if ([23, 59].includes(idx) && meter.cluster === 1) actual *= 0.82;
+          }
+          return { ...r, actual, forecast };
+        });
+      }
+
+      function buildChartSeries() {
+        const historical = getScopeSeries().slice(0, 60);
+        const base = historical.slice(-44);
+        const last = historical[historical.length - 1];
+        const future = [];
+        for (let i = 1; i <= state.horizon; i++) {
+          const d = new Date(last.day + "T00:00:00Z");
+          d.setUTCDate(d.getUTCDate() + i);
+          const source = daily[60 + i] || daily[daily.length - 1];
+          const forecast = last.forecast * (1 + Math.sin(i / 5) * 0.025 + (source.temp < 6 ? 0.015 : -0.004) * i / 7);
+          future.push({ day: d.toISOString().slice(0, 10), actual: null, forecast, temp: source.temp, weather: source.weather, future: true });
+        }
+        return [...base, ...future];
+      }
+
+      function computeStatus(row, series) {
+        if (!row || row.actual == null) return { level: "info", label: "Forecast", dev: 0, z: 0 };
+        const dev = ((row.actual - row.forecast) / row.forecast) * 100;
+        const errs = series.filter(x => x.actual != null).map(x => x.actual - x.forecast);
+        const mean = errs.reduce((a,b) => a+b,0) / errs.length;
+        const std = Math.sqrt(errs.reduce((a,b) => a + Math.pow(b - mean, 2), 0) / Math.max(1, errs.length - 1));
+        const z = std ? (row.actual - row.forecast - mean) / std : 0;
+        const absDev = Math.abs(dev);
+        const critical = state.criticalThreshold;
+        const warning = Math.max(8, critical - 5);
+        if (absDev >= critical || Math.abs(z) >= 2.4) return { level: "critical", label: "Critical", dev, z };
+        if (absDev >= warning || Math.abs(z) >= 1.9) return { level: "warning", label: "Warning", dev, z };
+        return { level: "normal", label: "Normal", dev, z };
+      }
+
+      function update() {
+        state.scope = document.getElementById("scopeSelect").value;
+        state.cluster = document.getElementById("clusterSelect").value;
+        state.meter = document.getElementById("meterSelect").value;
+        state.model = document.getElementById("modelSelect").value;
+        state.criticalThreshold = +document.getElementById("thresholdSlider").value;
+        document.getElementById("thresholdLabel").textContent = state.criticalThreshold + "%";
+        document.getElementById("alertRulePill").textContent = "Critical ≥ " + state.criticalThreshold + "%";
+        document.getElementById("clusterSelect").disabled = state.scope === "system";
+        document.getElementById("meterSelect").disabled = state.scope !== "meter";
+        renderAll();
+      }
+
+      function renderAll() {
+        const series = buildChartSeries();
+        const historical = series.filter(x => x.actual != null);
+        const latest = historical[historical.length - 1];
+        const status = computeStatus(latest, historical);
+        const peak = historical.reduce((a,b) => b.actual > a.actual ? b : a, historical[0]);
+        const scopeLabel = state.scope === "system" ? "System aggregate" : state.scope === "cluster" ? (state.cluster === "all" ? "All clusters" : "Cluster " + state.cluster) : state.meter;
+
+        document.getElementById("kpiActual").textContent = fmtKwh(latest.actual);
+        document.getElementById("kpiForecast").textContent = fmtKwh(latest.forecast);
+        document.getElementById("kpiAccuracy").textContent = fmtPct(100 - Math.abs(status.dev));
+        const alerts = getAlerts(historical);
+        document.getElementById("kpiAlerts").textContent = alerts.length;
+        document.getElementById("kpiPeak").textContent = fmtDate(peak.day);
+        document.getElementById("kpiWeather").textContent = state.scope === "meter" ? "High" : "Moderate";
+        document.getElementById("actualTrend").textContent = status.label + " · " + (status.dev >= 0 ? "+" : "") + status.dev.toFixed(1) + "%";
+        document.getElementById("actualTrend").className = "trend " + (status.level === "critical" ? "bad" : status.level === "warning" ? "warn" : "good");
+        document.getElementById("accuracyTrend").textContent = "z-score " + status.z.toFixed(2);
+        document.getElementById("accuracyTrend").className = "trend " + (status.level === "critical" ? "bad" : status.level === "warning" ? "warn" : "good");
+        document.getElementById("forecastTrend").textContent = state.horizon + "-day outlook · " + state.model;
+        document.getElementById("alertTrend").textContent = alerts.filter(a => a.level === "critical").length + " critical / " + alerts.length + " total";
+        document.getElementById("chartScopePill").textContent = scopeLabel + " · " + state.horizon + "D";
+        document.getElementById("topMeterPill").textContent = scopeLabel;
+
+        drawForecastChart("forecastChart", series);
+        renderAlerts(alerts);
+        drawDonut("donutChart", clusters);
+        renderClusterCards();
+        drawClusterUsage("clusterUsageChart");
+        const top = getTopMeters();
+        drawHorizontalBars("topMetersChart", top.map(m => ({ label: m.id, value: m.actual, status: m.status })));
+        renderTopMetersTable(top);
+        drawModelChart("modelChart");
+        drawWeatherScatter("weatherScatter", getScopeSeries().slice(0, 60));
+        drawWeatherCategory("weatherCategoryChart", getScopeSeries().slice(0, 60));
+        drawSeasonality("seasonalityChart");
+        renderInsights(status, alerts, scopeLabel);
+      }
+
+      function getAlerts(series) {
+        return series.map(r => ({ ...r, status: computeStatus(r, series) }))
+          .filter(r => r.status.level !== "normal")
+          .sort((a,b) => Math.abs(b.status.dev) - Math.abs(a.status.dev))
+          .slice(0, 8)
+          .map(r => ({ day: r.day, level: r.status.level, label: r.status.label, dev: r.status.dev, z: r.status.z, actual: r.actual, forecast: r.forecast, weather: r.weather, temp: r.temp }));
+      }
+
+      function renderAlerts(alerts) {
+        const el = document.getElementById("alertList");
+        if (!alerts.length) {
+          el.innerHTML = `<div class="alert-item"><div class="alert-top"><div class="alert-name">No active alerts</div><span class="badge normal">Normal</span></div><div class="alert-meta">All recent readings are within forecast deviation and z-score limits.</div></div>`;
+          return;
+        }
+        el.innerHTML = alerts.map(a => {
+          const direction = a.dev >= 0 ? "above" : "below";
+          const root = a.weather === "Cold snap" ? "Cold-day uplift" : a.weather === "Rain" ? "Rainy-day demand" : Math.abs(a.z) > 2.4 ? "Statistical outlier" : "Forecast deviation";
+          return `<div class="alert-item">
+            <div class="alert-top"><div class="alert-name">${fmtDate(a.day)} · ${Math.abs(a.dev).toFixed(1)}% ${direction} forecast</div><span class="badge ${a.level}">${a.label}</span></div>
+            <div class="alert-meta">Actual ${fmtKwh(a.actual)} vs forecast ${fmtKwh(a.forecast)}. z-score ${a.z.toFixed(2)}. Root cause hint: ${root}, ${a.temp.toFixed(1)}°C, ${a.weather}.</div>
+          </div>`;
+        }).join("");
+      }
+
+      function getTopMeters() {
+        const currentCluster = state.cluster;
+        const hist = getScopeSeries().slice(0, 60);
+        const latest = hist[hist.length - 1];
+        return topMeters
+          .filter(m => currentCluster === "all" || state.scope !== "cluster" || m.cluster === +currentCluster)
+          .map((m, idx) => {
+            const tempUplift = Math.max(0, 9 - latest.temp) * (m.cluster === 2 ? 0.09 : 0.04);
+            const actual = m.base * (1 + tempUplift) * (1 + Math.sin(idx + 1.5) * 0.06);
+            const forecast = m.base * (1 + tempUplift * 0.78);
+            const dev = ((actual - forecast) / forecast) * 100;
+            const level = Math.abs(dev) >= state.criticalThreshold ? "critical" : Math.abs(dev) >= Math.max(8, state.criticalThreshold - 5) ? "warning" : "normal";
+            return { ...m, actual, forecast, dev, status: level };
+          })
+          .sort((a,b) => b.actual - a.actual)
+          .slice(0, 10);
+      }
+
+      function renderTopMetersTable(rows) {
+        document.getElementById("topMetersTable").innerHTML = `
+          <thead><tr><th>Meter</th><th>Cluster</th><th>Actual</th><th>Forecast</th><th>Deviation</th><th>Status</th></tr></thead>
+          <tbody>${rows.map(r => `<tr><td><span class="meter-id">${r.id}</span><div class="muted">${r.kind}</div></td><td>Cluster ${r.cluster}</td><td>${fmtKwh(r.actual)}</td><td>${fmtKwh(r.forecast)}</td><td>${r.dev >= 0 ? "+" : ""}${r.dev.toFixed(1)}%</td><td><span class="badge ${r.status}">${r.status}</span></td></tr>`).join("")}</tbody>`;
+      }
+
+      function renderClusterCards() {
+        document.getElementById("clusterCards").innerHTML = clusters.map(c => `
+          <div class="cluster-card">
+            <strong>${c.name} — ${c.label}</strong>
+            <span>${c.count.toLocaleString()} meters (${c.pct}%). Avg ${c.avgDaily.toFixed(1)} kWh/day. ${c.desc}</span>
+          </div>`).join("");
+      }
+
+      function renderInsights(status, alerts, scopeLabel) {
+        const m = models[state.model].cluster;
+        const critical = alerts.filter(a => a.level === "critical").length;
+        const insightData = [
+          { icon: "Δ", title: "Forecast control", text: `${scopeLabel} is currently ${Math.abs(status.dev).toFixed(1)}% ${status.dev >= 0 ? "above" : "below"} forecast with z-score ${status.z.toFixed(2)}. This combines business deviation and statistical anomaly checks.` },
+          { icon: "ML", title: "Model recommendation", text: `${state.model} selected. Cluster-aware setup reports ${m.MAPE.toFixed(2)}% MAPE and ${m.SysMAPE.toFixed(2)}% system MAPE on the hold-out period.` },
+          { icon: "C", title: "Cluster action", text: `Cluster 2 is only 10.6% of meters but carries the highest daily load and volatility. Prioritize this group for exception review and root-cause analysis.` },
+          { icon: "°C", title: "Weather driver", text: `Cold and rainy days lift demand materially. Temperature, weather category and seasonality explain several forecast deviations before they become operational incidents.` }
+        ];
+        if (critical > 0) insightData[0].text += ` ${critical} critical alert(s) require same-day review.`;
+        document.getElementById("insightGrid").innerHTML = insightData.map(i => `<div class="insight-card"><div class="insight-icon">${i.icon}</div><h4>${i.title}</h4><p>${i.text}</p></div>`).join("");
+      }
+
+      function setCanvas(canvasId) {
+        const canvas = document.getElementById(canvasId);
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = Math.max(200, Math.floor(rect.width * dpr));
+        canvas.height = Math.max(160, Math.floor(rect.height * dpr));
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        return { canvas, ctx, w: rect.width, h: rect.height };
+      }
+
+      function drawAxes(ctx, plot, yTicks, yFmt) {
+        ctx.strokeStyle = colors.grid;
+        ctx.lineWidth = 1;
+        ctx.font = "11px Inter, system-ui";
+        ctx.fillStyle = colors.muted;
+        yTicks.forEach(t => {
+          ctx.beginPath(); ctx.moveTo(plot.x, t.y); ctx.lineTo(plot.x + plot.w, t.y); ctx.stroke();
+          ctx.fillText(yFmt(t.value), 8, t.y + 4);
+        });
+      }
+
+      function drawForecastChart(id, data) {
+        const { ctx, w, h } = setCanvas(id);
+        ctx.clearRect(0,0,w,h);
+        const plot = { x: 58, y: 20, w: w - 78, h: h - 58 };
+        const vals = data.flatMap(d => [d.actual, d.forecast]).filter(v => v != null && Number.isFinite(v));
+        const min = Math.min(...vals) * 0.92;
+        const max = Math.max(...vals) * 1.08;
+        const y = v => plot.y + plot.h - ((v - min) / (max - min)) * plot.h;
+        const x = i => plot.x + (i / (data.length - 1)) * plot.w;
+        const ticks = [0, .25, .5, .75, 1].map(p => ({ value: min + (max-min) * p, y: plot.y + plot.h * (1-p) }));
+        drawAxes(ctx, plot, ticks, fmtKwh);
+        ctx.fillStyle = colors.muted; ctx.font = "11px Inter, system-ui";
+        data.forEach((d,i) => { if (i % Math.ceil(data.length/7) === 0 || i === data.length-1) ctx.fillText(fmtDate(d.day), x(i)-16, plot.y + plot.h + 24); });
+        const firstFuture = data.findIndex(d => d.future);
+        if (firstFuture > -1) {
+          const fx = x(firstFuture - 0.5);
+          ctx.save(); ctx.setLineDash([5,5]); ctx.strokeStyle = "#94a3b8"; ctx.beginPath(); ctx.moveTo(fx, plot.y); ctx.lineTo(fx, plot.y + plot.h); ctx.stroke(); ctx.restore();
+          ctx.fillStyle = "#64748b"; ctx.fillText("Forecast horizon", fx + 7, plot.y + 14);
+        }
+        const drawLine = (key, color, dashed=false) => {
+          ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = key === "actual" ? 2.8 : 2.3; if (dashed) ctx.setLineDash([7,5]);
+          ctx.beginPath(); let started = false;
+          data.forEach((d,i) => {
+            const v = d[key]; if (v == null) return;
+            const px = x(i), py = y(v);
+            if (!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+          });
+          ctx.stroke(); ctx.restore();
+        };
+        drawLine("forecast", colors.blue2, true);
+        drawLine("actual", colors.ink, false);
+        data.forEach((d,i) => {
+          if (d.actual == null) return;
+          const st = computeStatus(d, data.filter(x => x.actual != null));
+          if (st.level !== "normal") {
+            ctx.beginPath(); ctx.fillStyle = st.level === "critical" ? colors.red : colors.amber; ctx.arc(x(i), y(d.actual), 4.5, 0, Math.PI*2); ctx.fill();
+          }
+        });
+        drawLegend(ctx, plot.x + plot.w - 250, 6, [{label:"Actual", color: colors.ink}, {label:"Forecast", color: colors.blue2}, {label:"Anomaly", color: colors.red}]);
+      }
+
+      function drawLegend(ctx, x, y, items) {
+        ctx.font = "12px Inter, system-ui";
+        items.forEach((it, idx) => {
+          const px = x + idx * 84;
+          ctx.fillStyle = it.color; ctx.beginPath(); ctx.arc(px, y + 8, 4, 0, Math.PI*2); ctx.fill();
+          ctx.fillStyle = colors.muted; ctx.fillText(it.label, px + 9, y + 12);
+        });
+      }
+
+      function drawDonut(id, data) {
+        const { ctx, w, h } = setCanvas(id);
+        ctx.clearRect(0,0,w,h);
+        const cx = w / 2, cy = h / 2, r = Math.min(w,h) * 0.36;
+        const palette = [colors.blue, colors.green, colors.amber];
+        let start = -Math.PI / 2;
+        data.forEach((d,i) => {
+          const angle = d.pct / 100 * Math.PI * 2;
+          ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx, cy, r, start, start + angle); ctx.closePath(); ctx.fillStyle = palette[i]; ctx.fill();
+          start += angle;
+        });
+        ctx.beginPath(); ctx.fillStyle = "#fff"; ctx.arc(cx, cy, r * 0.62, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = colors.ink; ctx.font = "800 22px Inter, system-ui"; ctx.textAlign = "center"; ctx.fillText("4,410", cx, cy - 4);
+        ctx.fillStyle = colors.muted; ctx.font = "12px Inter, system-ui"; ctx.fillText("meters", cx, cy + 16); ctx.textAlign = "left";
+      }
+
+      function drawClusterUsage(id) {
+        const data = clusters.map(c => ({ label: `Cluster ${c.id}`, value: c.avgDaily, status: c.id === 2 ? "critical" : c.id === 1 ? "normal" : "warning" }));
+        drawHorizontalBars(id, data, "kWh/day");
+      }
+
+      function drawHorizontalBars(id, data, suffix="kWh") {
+        const { ctx, w, h } = setCanvas(id);
+        ctx.clearRect(0,0,w,h);
+        const plot = { x: 122, y: 20, w: w - 166, h: h - 42 };
+        const max = Math.max(...data.map(d => d.value)) * 1.14;
+        const barH = Math.min(26, plot.h / data.length * 0.55);
+        const gap = plot.h / data.length;
+        ctx.font = "12px Inter, system-ui";
+        data.forEach((d,i) => {
+          const y = plot.y + i * gap + (gap - barH) / 2;
+          const bw = d.value / max * plot.w;
+          ctx.fillStyle = "#f1f5f9"; roundRect(ctx, plot.x, y, plot.w, barH, 8); ctx.fill();
+          ctx.fillStyle = d.status === "critical" ? colors.red : d.status === "warning" ? colors.amber : colors.blue2;
+          roundRect(ctx, plot.x, y, bw, barH, 8); ctx.fill();
+          ctx.fillStyle = colors.ink; ctx.textAlign = "right"; ctx.fillText(d.label, plot.x - 10, y + barH * 0.68);
+          ctx.textAlign = "left"; ctx.fillStyle = colors.muted; ctx.fillText(d.value.toFixed(1) + " " + suffix, plot.x + bw + 8, y + barH * 0.68);
+        });
+        ctx.textAlign = "left";
+      }
+
+      function drawModelChart(id) {
+        const selected = Object.entries(models).map(([name,m]) => ({ label: name.replace("Linear Regression", "Linear Reg."), value: m.cluster.SysMAPE, status: name === state.model ? "warning" : "normal" }));
+        drawHorizontalBars(id, selected, "% SysMAPE");
+      }
+
+      function drawWeatherScatter(id, rows) {
+        const { ctx, w, h } = setCanvas(id);
+        ctx.clearRect(0,0,w,h);
+        const plot = { x: 48, y: 20, w: w - 70, h: h - 56 };
+        const xs = rows.map(r => r.temp), ys = rows.map(r => r.actual);
+        const minX = Math.floor(Math.min(...xs))-1, maxX = Math.ceil(Math.max(...xs))+1;
+        const minY = Math.min(...ys)*0.93, maxY = Math.max(...ys)*1.05;
+        const x = v => plot.x + (v-minX)/(maxX-minX)*plot.w;
+        const y = v => plot.y + plot.h - (v-minY)/(maxY-minY)*plot.h;
+        drawAxes(ctx, plot, [0,.25,.5,.75,1].map(p => ({value:minY+(maxY-minY)*p,y:plot.y+plot.h*(1-p)})), fmtKwh);
+        ctx.fillStyle = colors.muted; ctx.font = "11px Inter, system-ui"; ctx.fillText("Temperature (°C)", plot.x + plot.w/2 - 38, h-8);
+        rows.forEach(r => { ctx.beginPath(); ctx.fillStyle = r.weather === "Cold snap" ? colors.red : r.weather === "Rain" ? colors.amber : colors.blue2; ctx.globalAlpha = 0.72; ctx.arc(x(r.temp), y(r.actual), 4, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha = 1; });
+      }
+
+      function drawWeatherCategory(id, rows) {
+        const grouped = weatherCats.map(cat => {
+          const arr = rows.filter(r => r.weather === cat);
+          const avg = arr.length ? arr.reduce((a,b)=>a+b.actual,0)/arr.length : 0;
+          return { label: cat, value: avg, status: cat === "Cold snap" ? "critical" : cat === "Rain" ? "warning" : "normal" };
+        }).filter(x=>x.value>0);
+        drawHorizontalBars(id, grouped, "kWh");
+      }
+
+      function drawSeasonality(id) {
+        const vals = [42.2, 41.0, 37.6, 32.8, 28.5, 25.6, 23.7, 23.4, 25.0, 29.3, 34.9, 39.8];
+        const { ctx, w, h } = setCanvas(id);
+        ctx.clearRect(0,0,w,h);
+        const plot = { x: 44, y: 18, w: w - 62, h: h - 50 };
+        const min = Math.min(...vals)*0.9, max = Math.max(...vals)*1.05;
+        const x = i => plot.x + i/(vals.length-1)*plot.w;
+        const y = v => plot.y + plot.h - (v-min)/(max-min)*plot.h;
+        drawAxes(ctx, plot, [0,.5,1].map(p => ({value:min+(max-min)*p,y:plot.y+plot.h*(1-p)})), v => v.toFixed(0)+" MWh");
+        ctx.beginPath(); ctx.strokeStyle = colors.green; ctx.lineWidth = 2.7;
+        vals.forEach((v,i)=>{ if(i===0)ctx.moveTo(x(i),y(v)); else ctx.lineTo(x(i),y(v)); }); ctx.stroke();
+        vals.forEach((v,i)=>{ ctx.fillStyle = colors.green; ctx.beginPath(); ctx.arc(x(i),y(v),3.5,0,Math.PI*2); ctx.fill(); if(i%2===0){ctx.fillStyle=colors.muted;ctx.font="10px Inter";ctx.fillText(months[i],x(i)-9,plot.y+plot.h+22);} });
+      }
+
+      function roundRect(ctx, x, y, w, h, r) {
+        const rr = Math.min(r, Math.abs(w)/2, Math.abs(h)/2);
+        ctx.beginPath(); ctx.moveTo(x + rr, y); ctx.arcTo(x + w, y, x + w, y + h, rr); ctx.arcTo(x + w, y + h, x, y + h, rr); ctx.arcTo(x, y + h, x, y, rr); ctx.arcTo(x, y, x + w, y, rr); ctx.closePath();
+      }
+
+      function init() {
+        const meterSelect = document.getElementById("meterSelect");
+        meterSelect.innerHTML = topMeters.map(m => `<option value="${m.id}">${m.id} · Cluster ${m.cluster}</option>`).join("");
+        document.querySelectorAll(".toggle-btn").forEach(btn => btn.addEventListener("click", () => {
+          document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active"); state.horizon = +btn.dataset.horizon; update();
+        }));
+        ["scopeSelect", "clusterSelect", "meterSelect", "modelSelect", "thresholdSlider"].forEach(id => document.getElementById(id).addEventListener("input", update));
+        window.addEventListener("resize", () => renderAll());
+        update();
+      }
+      return { init };
+    })();
+    document.addEventListener("DOMContentLoaded", DASHBOARD.init);
+  </script>
+</body>
+</html>
